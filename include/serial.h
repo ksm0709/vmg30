@@ -27,6 +27,7 @@ public:
 		byte_header = 0;
 		header = NULL; 
 		freq_cnt = 0;
+		check_sum_enable = false;
 	}
 	
 	Serial(int byte_header_, char* header_)
@@ -34,6 +35,7 @@ public:
 		vecRead.assign(1000, 0);
 		byte_header = byte_header_;
 		freq_cnt = 0;
+		check_sum_enable = false;
 		
 		header = new char[byte_header];
 		memcpy(header, header_, byte_header);
@@ -48,6 +50,8 @@ public:
 	void Close();
 
 	void setHeader(int byte_header_, char* header_);
+	void setCheckSum(int checksum_byte);
+	char CheckSum(char* buf, int size);
 	
 	bool readPacket(char* buf, int size);
 	bool writePacket(char* buf, int size);
@@ -62,6 +66,8 @@ private:
 
 	int byte_header;
 	char* header;	
+	bool check_sum_enable;
+	int check_sum_byte;
 
 	std::vector<char> vecBuf;
 	std::vector<char> vecRead;

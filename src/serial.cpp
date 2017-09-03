@@ -89,11 +89,28 @@ void Serial::setHeader(int byte_header_, char* header_)
 	memcpy(header, header_, byte_header);
 }
 
+void Serial::setCheckSum(int checksum_byte)
+{
+	check_sum_enable = true;
+	check_sum_byte = checksum_byte;
+}
+
+char Serial::CheckSum(char* buf, int size)
+{
+	int i;
+	char csum = buf[0];
+
+	for(i=1;i<size;i++)
+		csum ^= buf[i];
+	
+	return csum;
+}
+
 bool Serial::readPacket(char* buf, int size)
 {
 	int dwRead;
 	char* buf_header = new char[byte_header];
-
+	int i;
 	int err_cnt = 0;
 
 	while(1)
@@ -124,6 +141,11 @@ bool Serial::readPacket(char* buf, int size)
 			if( byte_header == 0 )
 			{
 				memcpy(buf, &vecBuf[0], size);	
+			
+				if( check_sum_enable )
+					if( CheckSum(buf,size-1) != buf[check_sum_byte] )
+						return false;
+				
 				freq_cnt++;
 				err_cnt = 0;
 				return true;
@@ -136,13 +158,17 @@ bool Serial::readPacket(char* buf, int size)
 				memcpy( buf, &vecBuf[byte_header], size );
 				vecBuf.erase( vecBuf.begin() , vecBuf.begin() + size + byte_header ); 
 
+				if( check_sum_enable )
+					if( CheckSum(buf,check_sum_byte) != buf[check_sum_byte] )
+						return false;
+
 				freq_cnt++;
 				return true;
 			}
 			else
 			{
 				// ERROR : Packet Missmatch
-				vecBuf.erase( vecBuf.begin(), vecBuf.begin() + byte_header );	
+				vecBuf.erase( vecBuf.begin(), vecBuf.begin() + 1 );	
 				err_cnt++;
 
 				if( err_cnt >= ERROR_THRESHOLD )
