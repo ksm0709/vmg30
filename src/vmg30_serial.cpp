@@ -5,7 +5,7 @@
 #include "serial.h"
 #include "glove_protocol.h"
 
-#define SAMPLE_HZ	100
+#define SAMPLE_HZ	110
 
 int main(int argc, char **argv)
 {
